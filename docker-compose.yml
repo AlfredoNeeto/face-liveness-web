@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  face-liveness:
+    # Note: build is ignored in docker stack deploy mode
+    # Pre-build locally: docker build -t face-liveness-web:latest .
+    # Or push to registry: docker push <registry>/face-liveness-web:latest
+    image: face-liveness-web:latest
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.face-liveness.rule=Host(`liveness.alfredonetodev.net`)"
+        - "traefik.http.routers.face-liveness.entrypoints=websecure"
+        - "traefik.http.routers.face-liveness.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.face-liveness.loadbalancer.server.port=3000"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    networks:
+      - network_public
+
+networks:
+  network_public:
+    external: true
+    name: network_public
