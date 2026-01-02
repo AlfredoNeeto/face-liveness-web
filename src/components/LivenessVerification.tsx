@@ -33,6 +33,7 @@ export default function LivenessVerification({
     <FaceLivenessDetector
       sessionId={sessionId}
       region="us-east-1"
+      disableStartScreen={true}
       displayText={livenessTextPtBr as any}
       onAnalysisComplete={handleAnalysisComplete}
       onError={handleError}
