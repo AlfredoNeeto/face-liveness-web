@@ -4,12 +4,42 @@ import LivenessVerification from './components/LivenessVerification'
 import type { LivenessResult, LivenessCancelResult } from './types/webview'
 import type { LivenessCallbackParams } from './types/liveness'
 
-function emitToFlutter(payload: unknown) {
+async function emitToFlutter(payload: unknown) {
+  const jsonPayload = JSON.stringify(payload)
+  
+  // Debug: sempre loga no console para verificar se o evento está sendo emitido
+  console.log('[Liveness Event]', jsonPayload)
+  
+  // flutter_inappwebview - método padrão
   if ((window as any).flutter_inappwebview) {
-    ;(window as any).flutter_inappwebview.callHandler(
-      'livenessEvent',
-      payload
-    )
+    try {
+      await (window as any).flutter_inappwebview.callHandler(
+        'livenessEvent',
+        jsonPayload
+      )
+      console.log('[Liveness] Evento enviado via flutter_inappwebview')
+      return
+    } catch (error) {
+      console.error('[Liveness] Erro ao enviar via flutter_inappwebview:', error)
+    }
+  }
+  
+  // Fallback: window.postMessage para webview_flutter ou outros
+  try {
+    window.parent.postMessage(jsonPayload, '*')
+    console.log('[Liveness] Evento enviado via postMessage')
+  } catch (error) {
+    console.error('[Liveness] Erro ao enviar via postMessage:', error)
+  }
+  
+  // Fallback: webkit para iOS WKWebView
+  if ((window as any).webkit?.messageHandlers?.livenessEvent) {
+    try {
+      (window as any).webkit.messageHandlers.livenessEvent.postMessage(jsonPayload)
+      console.log('[Liveness] Evento enviado via webkit messageHandler')
+    } catch (error) {
+      console.error('[Liveness] Erro ao enviar via webkit:', error)
+    }
   }
 }
 
