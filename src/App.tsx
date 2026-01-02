@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import PermissionPrompt from './components/PermissionPrompt'
 import ErrorScreen from './components/ErrorScreen'
 import LivenessVerification from './components/LivenessVerification'
@@ -7,8 +7,26 @@ import type { LivenessCallbackParams } from './types/liveness'
 
 export default function App() {
   const [hasCameraPermission, setHasCameraPermission] = useState(false)
-  const [checkingPermission, setCheckingPermission] = useState(false)
+  const [checkingPermission, setCheckingPermission] = useState(true)
   const [permissionError, setPermissionError] = useState<string | null>(null)
+
+  // Verificar permissão ao carregar
+  useEffect(() => {
+    const checkCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        stream.getTracks().forEach(track => track.stop())
+        setHasCameraPermission(true)
+      } catch {
+        // Se não conseguir acessar, deixa para o usuário solicitar
+        setHasCameraPermission(false)
+      } finally {
+        setCheckingPermission(false)
+      }
+    }
+
+    checkCameraPermission()
+  }, [])
 
   const requestCameraPermission = async () => {
     setPermissionError(null)
