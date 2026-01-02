@@ -4,7 +4,6 @@ dist
 .git
 .gitignore
 README.md
-.env
 .env.local
 .vscode
 .idea
@@ -15,3 +14,4 @@ README.md
 coverage
 .next
 build
+amplify
