@@ -4,6 +4,15 @@ import LivenessVerification from './components/LivenessVerification'
 import type { LivenessResult, LivenessCancelResult } from './types/webview'
 import type { LivenessCallbackParams } from './types/liveness'
 
+function emitToFlutter(payload: unknown) {
+  if ((window as any).flutter_inappwebview) {
+    ;(window as any).flutter_inappwebview.callHandler(
+      'livenessEvent',
+      payload
+    )
+  }
+}
+
 export default function App() {
   const sessionId = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
@@ -12,40 +21,29 @@ export default function App() {
 
   if (!sessionId) return <ErrorScreen />
 
-  const handleLivenessComplete = ({ success, error }: LivenessCallbackParams) => {
+  const handleLivenessComplete = ({
+    success,
+    error,
+  }: LivenessCallbackParams) => {
     const result: LivenessResult = {
       type: 'liveness-complete',
       success,
-      sessionId: sessionId!,
+      sessionId,
       timestamp: new Date().toISOString(),
       ...(error && { error }),
     }
 
-    window.parent.postMessage(result, '*')
-
-    if (window.Android?.onLivenessComplete) {
-      window.Android.onLivenessComplete(JSON.stringify(result))
-    }
-    if (window.webkit?.messageHandlers?.onLivenessComplete) {
-      window.webkit.messageHandlers.onLivenessComplete.postMessage(result)
-    }
+    emitToFlutter(result)
   }
 
   const handleLivenessCancel = () => {
     const result: LivenessCancelResult = {
       type: 'liveness-cancelled',
-      sessionId: sessionId!,
+      sessionId,
       timestamp: new Date().toISOString(),
     }
 
-    window.parent.postMessage(result, '*')
-
-    if (window.Android?.onLivenessComplete) {
-      window.Android.onLivenessComplete(JSON.stringify(result))
-    }
-    if (window.webkit?.messageHandlers?.onLivenessComplete) {
-      window.webkit.messageHandlers.onLivenessComplete.postMessage(result)
-    }
+    emitToFlutter(result)
   }
 
   return (
