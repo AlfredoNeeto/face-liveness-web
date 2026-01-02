@@ -6,11 +6,13 @@ import { getErrorMessage, logError } from '../utils/errorHandler'
 interface LivenessVerificationProps {
   sessionId: string
   onComplete?: (params: LivenessCallbackParams) => void
+  onCancel?: () => void
 }
 
 export default function LivenessVerification({
   sessionId,
   onComplete,
+  onCancel,
 }: LivenessVerificationProps) {
   const handleAnalysisComplete = async () => {
     if (onComplete) {
@@ -27,6 +29,12 @@ export default function LivenessVerification({
     }
   }
 
+  const handleUserCancel = () => {
+    if (onCancel) {
+      onCancel()
+    }
+  }
+
   return (
     <FaceLivenessDetector
       sessionId={sessionId}
@@ -35,6 +43,7 @@ export default function LivenessVerification({
       displayText={livenessTextPtBr as any}
       onAnalysisComplete={handleAnalysisComplete}
       onError={handleError}
+      onUserCancel={handleUserCancel}
     />
   )
 }

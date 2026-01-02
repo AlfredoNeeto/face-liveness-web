@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import ErrorScreen from './components/ErrorScreen'
 import LivenessVerification from './components/LivenessVerification'
-import type { LivenessResult } from './types/webview'
+import type { LivenessResult, LivenessCancelResult } from './types/webview'
 import type { LivenessCallbackParams } from './types/liveness'
 
 export default function App() {
@@ -31,5 +31,28 @@ export default function App() {
     }
   }
 
-  return <LivenessVerification sessionId={sessionId} onComplete={handleLivenessComplete} />
+  const handleLivenessCancel = () => {
+    const result: LivenessCancelResult = {
+      type: 'liveness-cancelled',
+      sessionId: sessionId!,
+      timestamp: new Date().toISOString(),
+    }
+
+    window.parent.postMessage(result, '*')
+
+    if (window.Android?.onLivenessComplete) {
+      window.Android.onLivenessComplete(JSON.stringify(result))
+    }
+    if (window.webkit?.messageHandlers?.onLivenessComplete) {
+      window.webkit.messageHandlers.onLivenessComplete.postMessage(result)
+    }
+  }
+
+  return (
+    <LivenessVerification
+      sessionId={sessionId}
+      onComplete={handleLivenessComplete}
+      onCancel={handleLivenessCancel}
+    />
+  )
 }

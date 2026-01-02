@@ -6,6 +6,15 @@ export interface LivenessResult {
   error?: string
 }
 
+export interface LivenessCancelResult {
+  type: 'liveness-cancelled'
+  sessionId: string
+  timestamp: string
+  reason?: string
+}
+
+export type LivenessEvent = LivenessResult | LivenessCancelResult
+
 export interface AndroidWebView {
   onLivenessComplete: (result: string) => void
 }
@@ -13,7 +22,7 @@ export interface AndroidWebView {
 export interface IOSWebView {
   messageHandlers: {
     onLivenessComplete: {
-      postMessage: (result: LivenessResult) => void
+      postMessage: (result: LivenessEvent) => void
     }
   }
 }
