@@ -13,8 +13,6 @@ export default function LivenessVerification({
   onComplete,
 }: LivenessVerificationProps) {
   const handleAnalysisComplete = async () => {
-    console.log('Análise concluída com sucesso')
-    
     if (onComplete) {
       onComplete({ success: true })
     }
